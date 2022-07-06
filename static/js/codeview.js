@@ -48,18 +48,24 @@ function changeFontSize(e) {
 
 function runCode(e){
     let code = editor.getValue()
-    let ele = document.getElementById('code-output')
+    let ele = document.getElementById('code-output');
+    console.log("Clicked");
+    console.log(code);
     ele.classList = ['text-white']
-    axios.post('/code/', {
+    let url = '/code/run/'
+    axios.post(url, {
         'code': code,
     },{
         headers: {
-            'X-CSRFToken': token
-        }}).then(res => {
+            'X-CSRFToken': csrftoken
+        }
+    }).then(res => {
+        console.log(res.data)
         JSON.stringify({
             type: "output",
             data: res,
         });
+        showOutput(res)
     }).catch(err=>{
         ele.classList.add('text-danger')
         ele.innerHTML = 'Unexpected error occured'

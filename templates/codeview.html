@@ -54,7 +54,10 @@
         </div>
     </div>
 </div>
-
+<script>
+    var csrftoken = '{{ csrf_token }}';
+    console.log(csrftoken);
+</script>
 <script type="text/javascript" src="{% static 'js/codeview.js' %}"></script>
 {% endif %}
 
