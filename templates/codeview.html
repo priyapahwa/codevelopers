@@ -15,6 +15,7 @@
 {% endblock title %}
 
 {% block content %}
+{% if user.is_authenticated %}
 <p>Hey, Coder!</p>
 <div class="container-fluid">
 
@@ -55,5 +56,6 @@
 </div>
 
 <script type="text/javascript" src="{% static 'js/codeview.js' %}"></script>
+{% endif %}
 
 {% endblock content %}
