@@ -1,0 +1,15 @@
+# Environments 
+venv
+.env
+
+# Visual Studio Code  
+.vscode/
+.history
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__
+*.sqlite3
+media
