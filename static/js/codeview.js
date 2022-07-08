@@ -49,12 +49,15 @@ function changeFontSize(e) {
 function runCode(e){
     let code = editor.getValue()
     let ele = document.getElementById('code-output');
+    
+    let input = document.getElementById('code-input');
+    console.log("input : ",input.value)
     console.log("Clicked");
     console.log(code);
     ele.classList = ['text-white']
-    let url = '/code/run/'
-    axios.post(url, {
+    axios.post('/api/v1/coderunner/', {
         'code': code,
+        'input':input.value
     },{
         headers: {
             'X-CSRFToken': csrftoken

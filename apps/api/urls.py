@@ -9,4 +9,5 @@ urlpatterns = [
     path("dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")),
     path("users/<int:id>", views.GenericUserAPIView.as_view()),
     path("register/", views.CustomRegisterView.as_view()),
+    path("coderunner/", views.CodeRunner.as_view()),
 ]
