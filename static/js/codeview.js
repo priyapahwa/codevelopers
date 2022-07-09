@@ -51,11 +51,12 @@ function runCode(e){
     let ele = document.getElementById('code-output');
     
     let input = document.getElementById('code-input');
-    console.log("input : ",input.value)
+    let language = document.getElementById('language').value;
+    console.log("input : ",language)
     console.log("Clicked");
     console.log(code);
     ele.classList = ['text-white']
-    axios.post('/api/v1/coderunner/', {
+    axios.post(`/api/v1/run/${language}/`, {
         'code': code,
         'input':input.value
     },{

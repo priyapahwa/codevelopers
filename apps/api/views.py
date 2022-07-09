@@ -55,7 +55,38 @@ class GenericUserAPIView(
         return self.destroy(request, id)
 
 
-class CodeRunner(generics.GenericAPIView):
+class Python2(generics.GenericAPIView):
+    @csrf_exempt
+    def post(self, request):
+        body = request.data["code"]
+        try:
+            input_data = encode(
+            str(request.data["input"]).encode().decode("unicode_escape"),
+            "raw_unicode_escape",
+        )
+            path = os.path.join(settings.BASE_DIR, "mediafiles", "python.py")
+            destination = open(path, "w+")
+            destination.write(body)
+            destination.close()
+            run = subprocess.Popen(
+            ["python2.7", path],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=input_data)[0]
+            return JsonResponse(
+                {"code": 0, "msg": "Successfully ran code",'results':grep_stdout.decode()},
+                status=200,
+            )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                {"code": 1, "msg": "Could not execute the code"}, status=400
+            )
+
+
+class Python3(generics.GenericAPIView):
     @csrf_exempt
     def post(self, request):
         body = request.data["code"]
@@ -77,6 +108,135 @@ class CodeRunner(generics.GenericAPIView):
             grep_stdout = run.communicate(input=input_data)[0]
             return JsonResponse(
                 {"code": 0, "msg": "Successfully ran code",'results':grep_stdout.decode()},
+                status=200,
+            )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                {"code": 1, "msg": "Could not execute the code"}, status=400
+            )
+
+
+class CppCompiler(generics.GenericAPIView):
+    @csrf_exempt
+    def post(self, request):
+        body = request.data["code"]
+        try:
+            input_data = encode(
+            str(request.data["input"]).encode().decode("unicode_escape"),
+            "raw_unicode_escape",
+        )
+            path = os.path.join(settings.BASE_DIR, "mediafiles", "cpp.cpp")
+            out = os.path.splitext(path)[0]
+            destination = open(path, "w+")
+            destination.write(body)
+            destination.close()
+            run = subprocess.Popen(
+            ["c++", path, "-o", out],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=input_data)[0]
+            if run.returncode==0:
+                run2 = subprocess.Popen(
+                [out],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                )
+                grep_stdout2 = run2.communicate(input=input_data)[0]
+                output = grep_stdout2.decode()
+            else:
+                output = grep_stdout.decode()
+            return JsonResponse(
+                {"code": 0, "msg": "Successfully ran code",'results':output},
+                status=200,
+            )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                {"code": 1, "msg": "Could not execute the code"}, status=400
+            )
+
+
+class CCompiler(generics.GenericAPIView):
+    @csrf_exempt
+    def post(self, request):
+        body = request.data["code"]
+        try:
+            input_data = encode(
+            str(request.data["input"]).encode().decode("unicode_escape"),
+            "raw_unicode_escape",
+        )
+            path = os.path.join(settings.BASE_DIR, "mediafiles", "cpp.cpp")
+            out = os.path.splitext(path)[0]
+            destination = open(path, "w+")
+            destination.write(body)
+            destination.close()
+            run = subprocess.Popen(
+            ["cc", path, "-o", out],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=input_data)[0]
+            if run.returncode==0:
+                run2 = subprocess.Popen(
+                [out],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                )
+                grep_stdout2 = run2.communicate(input=input_data)[0]
+                output = grep_stdout2.decode()
+            else:
+                output = grep_stdout.decode()
+            return JsonResponse(
+                {"code": 0, "msg": "Successfully ran code",'results':output},
+                status=200,
+            )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                {"code": 1, "msg": "Could not execute the code"}, status=400
+            )
+
+
+class JavaCompiler(generics.GenericAPIView):
+    @csrf_exempt
+    def post(self, request):
+        body = request.data["code"]
+        try:
+            input_data = encode(
+            str(request.data["input"]).encode().decode("unicode_escape"),
+            "raw_unicode_escape",
+        )
+            path = os.path.join(settings.BASE_DIR, "mediafiles", "cpp.cpp")
+            out = os.path.splitext(path)[0]
+            destination = open(path, "w+")
+            destination.write(body)
+            destination.close()
+            run = subprocess.Popen(
+            ["javac11", path, "-d", out],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=b"")[0]
+            if run.returncode==0:
+                run2 = subprocess.Popen(
+                ["java11", "-cp", out, "Solution"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                )
+                grep_stdout2 = run2.communicate(input=input_data)[0]
+                output = grep_stdout2.decode()
+            else:
+                output = grep_stdout.decode()
+            return JsonResponse(
+                {"code": 0, "msg": "Successfully ran code",'results':output},
                 status=200,
             )
         except Exception as e:
