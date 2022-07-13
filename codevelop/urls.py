@@ -25,4 +25,5 @@ urlpatterns = [
     path("code/", include("apps.codespace.urls")),
     path("api/v1/", include("apps.api.urls")),
     path("api-auth/", include("rest_framework.urls")),
+    path("chat/", include("apps.chat.urls")),
 ]

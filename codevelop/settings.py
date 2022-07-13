@@ -53,11 +53,13 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "dj_rest_auth.registration",
     "corsheaders",
+    "channels",
     # Local
     "apps.core",
     "apps.accounts",
     "apps.codespace",
     "apps.api",
+    "apps.chat",
 ]
 
 MIDDLEWARE = [
@@ -183,3 +185,7 @@ REST_AUTH_SERIALIZERS = {
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "apps.api.serializers.CustomRegisterSerializer",
 }
+
+ASGI_APPLICATION = "codevelop.routing.application"
+
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}

@@ -14,6 +14,4 @@ urlpatterns = [
     path("run/cpp/", views.CppCompiler.as_view()),
     path("run/c/", views.CCompiler.as_view()),
     path("run/java/", views.JavaCompiler.as_view()),
-    
-    
 ]

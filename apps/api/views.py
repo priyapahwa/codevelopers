@@ -1,19 +1,22 @@
-from dj_rest_auth.registration.views import RegisterView
-from rest_framework import generics
-from rest_framework import mixins
-from rest_framework.views import APIView
 import json
-import sys
-from io import StringIO
 import os
 import subprocess
+import sys
+from codecs import encode
+from io import StringIO
+
+from dj_rest_auth.registration.views import RegisterView
+from django.conf import settings
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
+from rest_framework import generics
+from rest_framework import mixins
+from rest_framework.views import APIView
+
 from apps.accounts.models import CustomUser
 from apps.api.serializers import UserSerializer
-from codecs import encode
+
 
 class UserList(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
@@ -61,22 +64,26 @@ class Python2(generics.GenericAPIView):
         body = request.data["code"]
         try:
             input_data = encode(
-            str(request.data["input"]).encode().decode("unicode_escape"),
-            "raw_unicode_escape",
-        )
+                str(request.data["input"]).encode().decode("unicode_escape"),
+                "raw_unicode_escape",
+            )
             path = os.path.join(settings.BASE_DIR, "mediafiles", "python.py")
             destination = open(path, "w+")
             destination.write(body)
             destination.close()
             run = subprocess.Popen(
-            ["python2.7", path],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+                ["python2.7", path],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
             )
             grep_stdout = run.communicate(input=input_data)[0]
             return JsonResponse(
-                {"code": 0, "msg": "Successfully ran code",'results':grep_stdout.decode()},
+                {
+                    "code": 0,
+                    "msg": "Successfully ran code",
+                    "results": grep_stdout.decode(),
+                },
                 status=200,
             )
         except Exception as e:
@@ -92,22 +99,26 @@ class Python3(generics.GenericAPIView):
         body = request.data["code"]
         try:
             input_data = encode(
-            str(request.data["input"]).encode().decode("unicode_escape"),
-            "raw_unicode_escape",
-        )
+                str(request.data["input"]).encode().decode("unicode_escape"),
+                "raw_unicode_escape",
+            )
             path = os.path.join(settings.BASE_DIR, "mediafiles", "python.py")
             destination = open(path, "w+")
             destination.write(body)
             destination.close()
             run = subprocess.Popen(
-            ["python3.10", path],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+                ["python3.10", path],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
             )
             grep_stdout = run.communicate(input=input_data)[0]
             return JsonResponse(
-                {"code": 0, "msg": "Successfully ran code",'results':grep_stdout.decode()},
+                {
+                    "code": 0,
+                    "msg": "Successfully ran code",
+                    "results": grep_stdout.decode(),
+                },
                 status=200,
             )
         except Exception as e:
@@ -123,34 +134,34 @@ class CppCompiler(generics.GenericAPIView):
         body = request.data["code"]
         try:
             input_data = encode(
-            str(request.data["input"]).encode().decode("unicode_escape"),
-            "raw_unicode_escape",
-        )
+                str(request.data["input"]).encode().decode("unicode_escape"),
+                "raw_unicode_escape",
+            )
             path = os.path.join(settings.BASE_DIR, "mediafiles", "cpp.cpp")
             out = os.path.splitext(path)[0]
             destination = open(path, "w+")
             destination.write(body)
             destination.close()
             run = subprocess.Popen(
-            ["c++", path, "-o", out],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            )
-            grep_stdout = run.communicate(input=input_data)[0]
-            if run.returncode==0:
-                run2 = subprocess.Popen(
-                [out],
+                ["c++", path, "-o", out],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=input_data)[0]
+            if run.returncode == 0:
+                run2 = subprocess.Popen(
+                    [out],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                 )
                 grep_stdout2 = run2.communicate(input=input_data)[0]
                 output = grep_stdout2.decode()
             else:
                 output = grep_stdout.decode()
             return JsonResponse(
-                {"code": 0, "msg": "Successfully ran code",'results':output},
+                {"code": 0, "msg": "Successfully ran code", "results": output},
                 status=200,
             )
         except Exception as e:
@@ -166,34 +177,34 @@ class CCompiler(generics.GenericAPIView):
         body = request.data["code"]
         try:
             input_data = encode(
-            str(request.data["input"]).encode().decode("unicode_escape"),
-            "raw_unicode_escape",
-        )
+                str(request.data["input"]).encode().decode("unicode_escape"),
+                "raw_unicode_escape",
+            )
             path = os.path.join(settings.BASE_DIR, "mediafiles", "cpp.cpp")
             out = os.path.splitext(path)[0]
             destination = open(path, "w+")
             destination.write(body)
             destination.close()
             run = subprocess.Popen(
-            ["cc", path, "-o", out],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            )
-            grep_stdout = run.communicate(input=input_data)[0]
-            if run.returncode==0:
-                run2 = subprocess.Popen(
-                [out],
+                ["cc", path, "-o", out],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=input_data)[0]
+            if run.returncode == 0:
+                run2 = subprocess.Popen(
+                    [out],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                 )
                 grep_stdout2 = run2.communicate(input=input_data)[0]
                 output = grep_stdout2.decode()
             else:
                 output = grep_stdout.decode()
             return JsonResponse(
-                {"code": 0, "msg": "Successfully ran code",'results':output},
+                {"code": 0, "msg": "Successfully ran code", "results": output},
                 status=200,
             )
         except Exception as e:
@@ -209,34 +220,34 @@ class JavaCompiler(generics.GenericAPIView):
         body = request.data["code"]
         try:
             input_data = encode(
-            str(request.data["input"]).encode().decode("unicode_escape"),
-            "raw_unicode_escape",
-        )
+                str(request.data["input"]).encode().decode("unicode_escape"),
+                "raw_unicode_escape",
+            )
             path = os.path.join(settings.BASE_DIR, "mediafiles", "cpp.cpp")
             out = os.path.splitext(path)[0]
             destination = open(path, "w+")
             destination.write(body)
             destination.close()
             run = subprocess.Popen(
-            ["javac11", path, "-d", out],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            )
-            grep_stdout = run.communicate(input=b"")[0]
-            if run.returncode==0:
-                run2 = subprocess.Popen(
-                ["java11", "-cp", out, "Solution"],
+                ["javac11", path, "-d", out],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+            )
+            grep_stdout = run.communicate(input=b"")[0]
+            if run.returncode == 0:
+                run2 = subprocess.Popen(
+                    ["java11", "-cp", out, "Solution"],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                 )
                 grep_stdout2 = run2.communicate(input=input_data)[0]
                 output = grep_stdout2.decode()
             else:
                 output = grep_stdout.decode()
             return JsonResponse(
-                {"code": 0, "msg": "Successfully ran code",'results':output},
+                {"code": 0, "msg": "Successfully ran code", "results": output},
                 status=200,
             )
         except Exception as e:
