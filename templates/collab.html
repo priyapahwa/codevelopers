@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Let's Code :)
+    <br> Room: {{ room_name }}
+</title>
+<script src="https://pagecdn.io/lib/ace/1.7.1/ace.min.js" crossorigin="anonymous"
+    integrity="sha256-t3qMLOmzjTmY/xKANmwjvwyf0Mdf8mYsbJndnRcyO9A="></script>
+<script src="https://pagecdn.io/lib/ace/1.7.1/theme-twilight.min.js" crossorigin="anonymous"></script>
+<script src="https://pagecdn.io/lib/ace/1.7.1/mode-python.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"
+    integrity="sha512-xIPqqrfvUAc/Cspuj7Bq0UtHNo/5qkdyngx6Vwt+tmbvTLDszzXM0G6c91LXmGrRx8KEPulT+AfOOez+TeVylg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
+<link rel="stylesheet" href="{% static 'style.css' %}">
+{% endblock title %}
+
+{% block content %}
+<p>Hey, Coder!</p>
+{% if set_pass %}
+    <div class="h-100 d-flex mx-4 justify-content-center align-items-center">
+        <div>
+            <p class="lead">The room is <strong>unoccupied.</strong>
+                Enter a password to claim it. 
+            </p>
+            <form class="form-group d-flex" method="POST">
+                {% csrf_token %}
+                <input class="form-control w-50" type="password" name="room-password" id="password">
+                <button type="submit" id="submit-set-pass" class="btn btn-sm btn-success mx-4">Submit</button>
+            </form>
+        </div>
+    </div>
+    {% elif get_pass %}
+    <div class="h-100 d-flex mx-4 justify-content-center align-items-center">
+        <div>
+            <p class="lead text-danger">The room is already occupied!
+                Enter the password: 
+            </p>
+            <form class="form-group d-flex" method="POST">
+                {% csrf_token %}
+                <input class="form-control w-50" type="password" name="room-password" id="password">
+                <button type="submit" id="submit-get-pass" class="btn btn-sm btn-success mx-4">Submit</button>
+            </form>
+        </div>
+    </div>
+{% else %}
+<div class="container-fluid">
+
+    <div class="row" class="mx-0">
+        <!-- Editor -->
+
+        <div class="col-md-7 col-sm-12 p-0">
+            <!-- Toolbar -->
+            <div class="toolbar p-1" style="min-height: 40px; height: 5vh ;background-color: rgba(0, 0, 0, 0.808);">
+                <select name="language" id="language">
+                    <option value="cpp">
+                        Cpp
+                    </option>
+                    
+                    <option value="c">
+                        C
+                    </option>
+                    <option value="python3">
+                        Python 3.X
+                    </option>
+                    <option value="python2">
+                        Python 2.X
+                    </option>
+                    <option value="java">
+                        Java
+                    </option>
+                </select>
+                <button onclick="runCode();" class="btn mx-1 btn-sm btn-info">Run</button>
+                <button onclick="saveCode();" class="btn btn-sm btn-success">Save</button>
+
+                <div style="position: absolute; right: 15px; top: 5px">
+                    <label for="input-font" class="text-white">Font Size:</label>
+                    <select id="input-font" class="input" onchange="changeFontSize (this);">
+                        <option value="12" selected="selected">
+                            12
+                        </option>
+                        <option value="14">14</option>
+                        <option value="16">16</option>
+                        <option value="20">20</option>
+                        <option value="22">22</option>
+                        <option value="24">24</option>
+                    </select>
+                </div>
+
+            </div>
+            <!-- Main editor -->
+            <div id="editor" style="height: 80vh;">print('Hello world!')</div>
+            
+            <div class="output-screen bg-dark p-2" style="height: 15vh; overflow: auto; word-wrap:break-word;">
+                <div>
+                    <!-- <input type="text" id="code-input"> -->
+                    <textarea id="code-input"> </textarea>
+                </div>
+                <strong>
+                    <p class="text-white">Output</p>
+                </strong>
+                <p id="code-output" class="text-white"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    const userName = "{{request.user.username}}"
+    const roomName = "{{room_name}}"
+</script>
+<script>
+    var csrftoken = '{{ csrf_token }}';
+    console.log(csrftoken);
+</script>
+
+{% if get_pass or set_pass %}
+<script type="text/javascript" src="{% static 'js/pass.js' %}"></script>
+{% else %}
+<script type="text/javascript" src="{% static 'js/chat.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/codeview.js' %}"></script>
+{% endif %}
+{% endblock content %}

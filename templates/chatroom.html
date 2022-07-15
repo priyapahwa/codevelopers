@@ -3,55 +3,171 @@
 {% endblock title %}
 {% block content %}
 
-<div class="container">
-    <div class="row d-flex justify-content-center">
-        <div class="col-6">
-            <form>
-                <div class="form-group">
-                    <label for="exampleFormControlTextarea1" class="h4 pt-5">Chatroom</label>
-                    <textarea class="form-control" id="chat-text" rows="10"></textarea><br>
-                </div>
-                <div class="form-group">
-                    <input class="form-control" id="input" type="text"></br>
-                </div>
-                <input class="btn btn-secondary btn-lg btn-block" id="submit" type="button" value="Send">
+{% if set_pass %}
+    <div class="h-100 d-flex mx-2 justify-content-center align-items-center">
+        <div>
+            <p class="lead">The room is <strong>unoccupied.</strong>
+                Enter a password to claim it. 
+            </p>
+            <form class="form-group d-flex" method="POST">
+                {% csrf_token %}
+                <input class="form-control w-50" type="password" name="room-password" id="password">
+                <button type="submit" id="submit-set-pass" class="btn btn-sm btn-success mx-4">Submit</button>
             </form>
         </div>
     </div>
-</div>
+    {% elif get_pass %}
+    <div class="h-100 d-flex mx-2 justify-content-center align-items-center">
+        <div>
+            <p class="lead text-danger">The room is already occupied!
+                Enter the password: 
+            </p>
+            <form class="form-group d-flex" method="POST">
+                {% csrf_token %}
+                <input class="form-control w-50" type="password" name="room-password" id="password">
+                <button type="submit" id="submit-get-pass" class="btn btn-sm btn-success mx-4">Submit</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="container">
+        <div class="row d-flex justify-content-center">
+            <div class="col-6">
+                <form>
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1" class="h4 pt-5">Chatroom: {{room_name}}</label>
+                        <textarea class="form-control" id="chat-text" rows="10"></textarea><br>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" id="input" type="text"></br>
+                    </div>
+                    <input class="btn btn-secondary btn-lg btn-block" id="submit" type="button" value="Send">
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 {{ request.user.username|json_script:"user_username" }}
 {{ room_name|json_script:"room-name" }}
+
+{% if get_pass or set_pass %}
 <script>
-    const user_username = JSON.parse(document.getElementById('user_username').textContent);
-    document.querySelector('#submit').onclick = function (e) {
-        const messageInputDom = document.querySelector('#input');
-        const message = messageInputDom.value;
-        chatSocket.send(JSON.stringify({
-            'message': message,
-            'username': user_username,
-        }));
-        messageInputDom.value = '';
-    };
+$(document).ready(() => {
+    $("#submit-set-pass").click((e) => {
+        e.preventDefault()
+        let token =  $('input[name="csrfmiddlewaretoken"]').attr('value')
+        let password = $('#password').val()
+        console.log(password)
+        axios.post('/auth/', {
+            "password": password,
+            "room_name": roomName,
+            "type": "set_pass"
+        },{
+            headers: {
+                'X-CSRFToken': token
+            }
+        }).then((res) => {
+            console.log(res)
+            location.reload()
+        }).catch((err) => {
+            console.error(err.response)
+            alert(err.response.data.msg)
+        })
+    })
 
-
-
-
-    const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
-    const chatSocket = new WebSocket(
-        'ws://' +
-        window.location.host +
-        '/ws/chat/' +
-        roomName +
-        '/'
-    );
-
-    chatSocket.onmessage = function (e) {
-        const data = JSON.parse(e.data);
-        console.log(data)
-        document.querySelector('#chat-text').value += (data.username + ': ' + data.message + '\n')
-    }
+    $("#submit-get-pass").click((e) => {
+        e.preventDefault()
+        let token =  $('input[name="csrfmiddlewaretoken"]').attr('value')
+        let password = $('#password').val()
+        console.log(password)
+        axios.post('/auth/', {
+                "password": password,
+                "room_name": roomName,
+                "type": "get_pass"
+        }, {
+            headers: {
+                'X-CSRFToken': token
+            }
+        }).then(res => {
+            console.log(res)
+            location.reload()
+        }).catch(err => alert(err.response.data.msg))
+    })
+})
 </script>
+{% else %}
+<script>
+console.log(userName)
+console.log(roomName)
+
+
+let chatWindow = document.getElementById('chat-text');
+
+document.querySelector('#submit').onclick = function (e) {
+    console.log('sending data')
+    const messageInputDom = document.querySelector('#input');
+    const message = messageInputDom.value;
+    chatSocket.send(JSON.stringify({
+        'type': 'chat',
+        'message': message,
+    }));
+    messageInputDom.value = '';
+};
+
+
+
+const chatSocket = new WebSocket(
+    'wss://' +
+    // 'ws://' +
+    window.location.host +
+    '/ws/chat/' +
+    roomName +
+    '/'
+);
+
+//stop reloading page when pressed enter in chatbox, but instead click the submit button
+$("#input").on('keypress', (e) => {
+    if(e.key == 'Enter'){
+        $("#submit").click()
+    }
+})
+
+chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+
+    if(data.username){
+        document.querySelector('#chat-text').innerHTML += ('<span class="text-danger">' + data.username + '</span>'+ ': ' + data.message + '<br/>')
+    }
+    else{
+        document.querySelector('#chat-text').innerHTML += ('<span class="font-weight-bold">' + data.message + '</span>' + '<br/>') 
+    }
+    var xH = chatWindow.scrollHeight; 
+    chatWindow.scrollTo(0, xH);
+
+}
+
+chatSocket.onclose = (e) => {
+    setTimeout(function(){
+        alert("Lost connection to the server. Disconnected.")
+    }, 200)
+}
+
+
+
+$(document).ready(() => {
+    $("#exit").click(() => {
+        chatSocket.close()
+        document.querySelector('#chat-text').innerHTML += ('<span class="font-weight-bold">' + 'Connection closed.' + '</span>' + '<br/>') 
+        $("#exit").hide()
+        $("#submit").hide()
+        $("#reload").show()
+    })
+    $("#reload").click(() => {
+        location.reload()
+    })
+})
+</script>
+{% endif %}
 
 {% endblock content %}
